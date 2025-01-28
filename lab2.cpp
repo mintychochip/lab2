@@ -1,9 +1,5 @@
-//
-<<<<<<< HEAD
-//modified by:
-=======
+
 //modified by: Justin Lo
->>>>>>> a996254 (normal)
 //date:
 //
 //original author: Gordon Griesel
