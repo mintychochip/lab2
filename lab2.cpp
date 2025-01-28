@@ -1,5 +1,9 @@
 //
+<<<<<<< HEAD
 //modified by:
+=======
+//modified by: Justin Lo
+>>>>>>> a996254 (normal)
 //date:
 //
 //original author: Gordon Griesel
@@ -31,9 +35,10 @@ class Global {
 public:
 	int xres, yres;
     float w;
-    float dir;
+    float dir[2];
     float pos[2];
     Color color;
+    float heat;
 	Global();
 } g;
 
@@ -86,12 +91,14 @@ Global::Global()
 	xres = 400;
 	yres = 200;
     w = 20.0f;
-    dir = 20.0f;
+    dir[0] = 20.0f;
+    dir[1] = 20.0f;
     pos[0] = 0.0f + w;
     pos[1] = g.yres/2.0f;
     color.red = 100;
     color.green = 120;
     color.blue = 220;
+    heat = 0;
 }
 
 X11_wrapper::~X11_wrapper()
@@ -258,35 +265,67 @@ void set_to_color(Color color) {
     g.color.green = color.green;
 }
 
+void move() {
+    g.pos[0] += g.dir[0];
+    g.pos[1] += g.dir[1];
+}
+float normalizedHeat(float max_heat, float min_heat) {
+    return (g.heat - min_heat) / (max_heat - min_heat);
+}
 
+float colorComponent(float two, float one, float normal) {
+    return one + normal * (two - one);
+}
+
+Color colorFromHeat(float max_heat, float min_heat) {
+    [[maybe_unused]] static Color MAX_COLOR {255,0,0};
+    [[maybe_unused]] static Color MIN_COLOR {100,120,220};
+    
+    float heat = normalizedHeat(max_heat,min_heat);
+    float red = colorComponent(MAX_COLOR.red,MIN_COLOR.red,heat);
+    float blue = colorComponent(MAX_COLOR.blue,MIN_COLOR.blue,heat);
+    float green = colorComponent(MAX_COLOR.green,MIN_COLOR.green,heat);
+    return Color {static_cast<int>(red),static_cast<int>(green),static_cast<int>(blue)};
+}
 
 void physics()
 {
-    static int step = 5;
-    static Color red {220,120,100};
-    static Color blue {100,120,220};
+    static constexpr float HEAT_INCREMENT { 5.0f };
 	//No physics yet.
-	g.pos[0] += g.dir;
-    g.color.blue += step;
-    g.color.blue = std::min(g.color.blue,blue.blue);
-    int redTemp = g.color.red;
-    redTemp -= step;
-    redTemp = std::max(redTemp,blue.red);
-    g.color.red = std::min(redTemp,red.red);
+    static constexpr float MAX_HEAT { 100.0f };
+    static constexpr float MIN_HEAT { 0.0f };
+    move();
+    Color c = colorFromHeat(MAX_HEAT,MIN_HEAT);
+    set_to_color(c);
+    g.heat = std::max(g.heat - 1.5f, MIN_HEAT);
 	if (g.pos[0] >= (g.xres-g.w)) {
 		g.pos[0] = (g.xres-g.w);
-		g.dir = -g.dir;
-        set_to_color(red);
+		g.dir[0] = -g.dir[0];
+        g.heat = std::min(g.heat + HEAT_INCREMENT, MAX_HEAT);
 	}
 	if (g.pos[0] <= g.w) {
 		g.pos[0] = g.w;
-		g.dir = -g.dir;
-        set_to_color(red);
+		g.dir[0] = -g.dir[0];
+        g.heat = std::min(g.heat + HEAT_INCREMENT, MAX_HEAT);
 	}
+    if(g.pos[1] >= (g.yres-g.w)) {
+        g.pos[1] = (g.yres-g.w);
+        g.dir[1] = -g.dir[1];
+        g.heat = std::min(g.heat + HEAT_INCREMENT, MAX_HEAT);
+    }
+    if(g.pos[1] <= g.w) {
+        g.pos[1] = g.w;
+        g.dir[1] = -g.dir[1];
+        g.heat = std::min(g.heat + HEAT_INCREMENT, MAX_HEAT);
+    }
 }
 void render()
 {
 		//clear the window
+    if(g.xres < g.w && g.yres < g.w) {
+        return;
+    }
+
 	glClear(GL_COLOR_BUFFER_BIT);
 	//draw the box
 	glPushMatrix();
