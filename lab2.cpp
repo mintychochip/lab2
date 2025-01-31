@@ -10,6 +10,7 @@
 //We will do this in class together.
 //
 //
+#include "fonts.h"
 #include <iostream>
 using namespace std;
 #include <stdio.h>
@@ -79,6 +80,7 @@ int main()
 		x11.swapBuffers();
 		usleep(200);
 	}
+	cleanup_fonts();
 	return 0;
 }
 
@@ -253,6 +255,8 @@ void init_opengl(void)
 	glOrtho(0, g.xres, 0, g.yres, -1, 1);
 	//Set the screen background color
 	glClearColor(0.1, 0.1, 0.1, 1.0);
+	glEnable(GL_TEXTURE_2D);
+	intialize_fonts();
 }
 
 void set_to_color(Color color) {
@@ -334,6 +338,16 @@ void render()
 		glVertex2f( g.w, -g.w);
 	glEnd();
 	glPopMatrix();
+
+	Rect r;
+
+	r.bot = g.yres - 20;
+	r.left = 10;
+	r.center = 0;
+	ggprint8b(&r, 16, 0x00ff0000, "3350 - Asteroids");
+	ggprint8b(&r, 16, 0x00ffff00, "Esc to Exit");
+	ggprint8b(&r, 16, 0x00ffff00, "A to speed up");
+	ggprint8b(&r, 16, 0x00ffff00, "B to slow up");
 }
 
 
