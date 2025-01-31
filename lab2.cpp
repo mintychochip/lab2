@@ -256,7 +256,7 @@ void init_opengl(void)
 	//Set the screen background color
 	glClearColor(0.1, 0.1, 0.1, 1.0);
 	glEnable(GL_TEXTURE_2D);
-	intialize_fonts();
+	initialize_fonts();
 }
 
 void set_to_color(Color color) {
